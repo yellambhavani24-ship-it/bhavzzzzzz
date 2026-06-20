@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bhavzzz Chat 💕</title>
+</head>
+<body>
+
+<h1>Bhavzzz Chat 💕</h1>
+
+<input type="text" id="message" placeholder="Type a message">
+<button onclick="sendMessage()">Send</button>
+
+<div id="chatBox"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    push,
+    onChildAdded
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBcZ8UD5VQJFk5gVgT0FgXR2BfTdmXrSow",
+    authDomain: "bhavzzz-chat.firebaseapp.com",
+    databaseURL: "https://bhavzzz-chat-default-rtdb.firebaseio.com",
+    projectId: "bhavzzz-chat",
+    storageBucket: "bhavzzz-chat.firebasestorage.app",
+    messagingSenderId: "121442908479",
+    appId: "1:121442908479:web:3c840a3041ce0116c7fb8a"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.sendMessage = function() {
+
+    const msg = document.getElementById("message").value;
+
+    if(msg === "") return;
+
+    push(ref(db, "messages"), {
+        text: msg
+    });
+
+    document.getElementById("message").value = "";
+}
+
+onChildAdded(ref(db, "messages"), (snapshot) => {
+
+    const data = snapshot.val();
+
+    document.getElementById("chatBox").innerHTML +=
+        "<p>💕 " + data.text + "</p>";
+});
+
+</script>
+
+</body>
+</html>
