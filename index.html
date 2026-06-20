@@ -1,30 +1,151 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Bhavzzz Chat 💕</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Bhavzzz Chat 💕</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#ff9ecf,#d9b3ff);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.chat-container{
+    width:95%;
+    max-width:450px;
+    height:90vh;
+    background:white;
+    border-radius:20px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 0 20px rgba(0,0,0,0.2);
+}
+
+.header{
+    background:#ff5fa2;
+    color:white;
+    text-align:center;
+    padding:15px;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.user-box{
+    padding:10px;
+    border-bottom:1px solid #eee;
+}
+
+.user-box input{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #ddd;
+}
+
+#chatBox{
+    flex:1;
+    overflow-y:auto;
+    padding:10px;
+    background:#fff7fb;
+}
+
+.message{
+    background:#ffd6ea;
+    padding:10px;
+    border-radius:15px;
+    margin-bottom:10px;
+    word-wrap:break-word;
+}
+
+.name{
+    font-weight:bold;
+    color:#d63384;
+}
+
+.time{
+    font-size:11px;
+    color:gray;
+}
+
+.input-area{
+    display:flex;
+    padding:10px;
+    gap:5px;
+    border-top:1px solid #eee;
+}
+
+.input-area input{
+    flex:1;
+    padding:12px;
+    border-radius:20px;
+    border:1px solid #ccc;
+}
+
+button{
+    background:#ff5fa2;
+    color:white;
+    border:none;
+    padding:12px 18px;
+    border-radius:20px;
+    cursor:pointer;
+}
+</style>
 </head>
+
 <body>
 
-<h1>Bhavzzz Chat 💕</h1>
+<div class="chat-container">
 
-<input type="text" id="message" placeholder="Type a message">
-<button onclick="sendMessage()">Send</button>
+<div class="header">
+💖 Bhavzzz Chat 💖
+</div>
+
+<div class="user-box">
+<input type="text" id="username" placeholder="Enter your name">
+</div>
 
 <div id="chatBox"></div>
 
+<div class="input-area">
+<input type="text" id="message" placeholder="Type a message...">
+<button onclick="sendMessage()">Send</button>
+<button onclick="clearChat()">Clear Chat</button>
+</div>
+
+</div>
+
 <script type="module">
+    const password = prompt("Enter Chat Password ❤️");
+
+if(password !== "vamshi24"){
+    document.body.innerHTML = "<h1>Access Denied ❌</h1>";
+    throw new Error("Wrong password");
+}
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-
 import {
     getDatabase,
     ref,
     push,
-    onChildAdded
+    onChildAdded,
+    remove
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBcZ8UD5VQJFk5gVgT0FgXR2BfTdmXrSow",
+ apiKey: "AIzaSyBcZ8UD5VQJFk5gVgT0FgXR2BfTdmXrSow",
     authDomain: "bhavzzz-chat.firebaseapp.com",
     databaseURL: "https://bhavzzz-chat-default-rtdb.firebaseio.com",
     projectId: "bhavzzz-chat",
@@ -36,25 +157,55 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-window.sendMessage = function() {
+window.sendMessage = function(){
 
-    const msg = document.getElementById("message").value;
+const msg=document.getElementById("message").value;
+const user=document.getElementById("username").value || "Anonymous";
 
-    if(msg === "") return;
+if(msg==="") return;
 
-    push(ref(db, "messages"), {
-        text: msg
-    });
+push(ref(db,"messages"),{
+name:user,
+text:msg,
+time:new Date().toLocaleTimeString()
+});
 
-    document.getElementById("message").value = "";
+document.getElementById("message").value="";
+}
+window.clearChat = function() {
+
+    const pass = prompt("Enter admin password");
+
+    if(pass !== "bhavzzz123"){
+        alert("Wrong password!");
+        return;
+    }
+
+    remove(ref(db, "messages"));
+    document.getElementById("chatBox").innerHTML = "";
 }
 
-onChildAdded(ref(db, "messages"), (snapshot) => {
+document.getElementById("message").addEventListener("keypress",(e)=>{
+if(e.key==="Enter"){
+sendMessage();
+}
+});
 
-    const data = snapshot.val();
+onChildAdded(ref(db,"messages"),(snapshot)=>{
 
-    document.getElementById("chatBox").innerHTML +=
-        "<p>💕 " + data.text + "</p>";
+const data=snapshot.val();
+
+document.getElementById("chatBox").innerHTML += `
+<div class="message">
+<div class="name">${data.name}</div>
+<div>${data.text}</div>
+<div class="time">${data.time}</div>
+</div>
+`;
+
+const chat=document.getElementById("chatBox");
+chat.scrollTop=chat.scrollHeight;
+
 });
 
 </script>
