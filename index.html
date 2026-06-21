@@ -328,7 +328,8 @@ import {
     ref,
     push,
     onChildAdded,
-    remove
+    remove,
+    update
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -373,7 +374,8 @@ push(ref(db,"messages"),{
 name:user,
 text:msg,
 reply:replyingTo,
-time:new Date().toLocaleTimeString()
+time:new Date().toLocaleTimeString(),
+seen:false
 });
 replyingTo = "";
 
@@ -407,19 +409,35 @@ sendMessage();
 onChildAdded(ref(db,"messages"),(snapshot)=>{
 
 const data = snapshot.val();
+const msgRef = snapshot.ref;
+
+const currentUser = localStorage.getItem("chatUsername");
+
+// mark seen only for receiver messages
+if (data.name !== currentUser && !data.seen) {
+    update(msgRef, { seen: true });
+}
+
 const replyHtml = data.reply
 ? `<div class="reply-preview">${data.reply}</div>`
 : "";
-const currentUser = localStorage.getItem("chatUsername");
 
 const side = data.name === currentUser ? "right" : "left";
 
 document.getElementById("chatBox").innerHTML += `
 <div class="message ${side}" onclick="replyToMessage('${data.text.replace(/'/g, "\\'")}')">
+
     <div class="name">${data.name}</div>
+
     ${replyHtml}
+
     <div>${data.text}</div>
-    <div class="time">${data.time}</div>
+
+    <div class="time">
+        ${data.time}
+        ${data.seen ? " ✓✓ Seen" : " ✓ Sent"}
+    </div>
+
 </div>
 `;
 
