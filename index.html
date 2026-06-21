@@ -136,14 +136,14 @@ z-index:1;
 }
 
 .right{
-    background:#dcf8c6;
+    background:#f8c6c6;
     margin-left:auto;
     text-align:left;
 }
 
 .name{
     font-weight:bold;
-    color:#d63384;
+    color:#d63333;
 }
 
 .time{
@@ -204,6 +204,14 @@ padding-left:10px;
 color:gray;
 font-style:italic;
 }
+.reply-preview{
+    background:rgba(0,0,0,0.08);
+    border-left:4px solid #ff5fa2;
+    padding:6px;
+    margin-bottom:6px;
+    border-radius:6px;
+    font-size:13px;
+}
 </style>
 </head>
 
@@ -215,19 +223,34 @@ font-style:italic;
   <span>💘</span>
   <span>💝</span>
 </div>
+<div id="loginScreen">
 
-<div class="chat-container">
+<h2>💕 Bhavzzz Private Chat 💕</h2>
+
+<input id="loginUser" placeholder="Username">
+
+<input
+id="loginPass"
+type="password"
+placeholder="Password">
+
+<button onclick="login()">
+Login
+</button>
+
+</div>
+<div class="chat-container" id="chatApp" style="display:none;">
 
 <div class="header">
 💖 Bhavzzz Chat 💖
 <button onclick="toggleTheme()">🌙</button>
+<button onclick="logout()">🚪</button>
 </div>
 <div class="counter">
 ❤️ Together for <span id="days"></span> days ❤️
 </div>
 <div class="user-box">
-<input type="text" id="username" placeholder="Enter your name">
-<button onclick="changeName()">✏️</button>
+
 </div>
 
 <div id="chatBox"></div>
@@ -248,11 +271,55 @@ font-style:italic;
 
 <script type="module">
     
-    const password = prompt("Enter Chat Password ❤️");
 
-if(password !== "vamshi24"){
-    document.body.innerHTML = "<h1>Access Denied ❌</h1>";
-    throw new Error("Wrong password");
+window.login = function(){
+
+const user =
+document.getElementById("loginUser").value;
+
+const pass =
+document.getElementById("loginPass").value;
+
+if(
+(user==="Bhavzzz" && pass==="2124")
+||
+(user==="Vamshi" && pass==="2124")
+){
+
+localStorage.setItem(
+"chatUsername",
+user
+);
+
+document.getElementById(
+"loginScreen"
+).style.display="none";
+
+document.getElementById(
+"chatApp"
+).style.display="flex";
+
+}
+else{
+
+alert("Wrong username or password");
+
+}
+
+}
+const savedUser =
+localStorage.getItem("chatUsername");
+
+if(savedUser){
+
+document.getElementById(
+"loginScreen"
+).style.display="none";
+
+document.getElementById(
+"chatApp"
+).style.display="flex";
+
 }
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
@@ -277,15 +344,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 let replyingTo = "";
-const usernameInput = document.getElementById("username");
 
-// Load saved name
-const savedName = localStorage.getItem("chatUsername");
-
-if(savedName){
-    usernameInput.value = savedName;
-    usernameInput.disabled = true;
-}
 window.replyToMessage = function(text){
 
     replyingTo = text;
@@ -304,13 +363,8 @@ window.cancelReply = function(){
 window.sendMessage = function(){
 
 const msg=document.getElementById("message").value;
-const user = usernameInput.value || "Anonymous";
+const user = localStorage.getItem("chatUsername");
 
-// Save name first time
-if(!localStorage.getItem("chatUsername")){
-    localStorage.setItem("chatUsername", user);
-    usernameInput.disabled = true;
-}
 
 
 if(msg==="") return;
@@ -318,8 +372,12 @@ if(msg==="") return;
 push(ref(db,"messages"),{
 name:user,
 text:msg,
+reply:replyingTo,
 time:new Date().toLocaleTimeString()
 });
+replyingTo = "";
+
+document.getElementById("replyBox").style.display = "none";
 
 document.getElementById("message").value="";
 }
@@ -349,14 +407,17 @@ sendMessage();
 onChildAdded(ref(db,"messages"),(snapshot)=>{
 
 const data = snapshot.val();
-
+const replyHtml = data.reply
+? `<div class="reply-preview">${data.reply}</div>`
+: "";
 const currentUser = localStorage.getItem("chatUsername");
 
 const side = data.name === currentUser ? "right" : "left";
 
 document.getElementById("chatBox").innerHTML += `
-<div class="message ${side}">
+<div class="message ${side}" onclick="replyToMessage('${data.text.replace(/'/g, "\\'")}')">
     <div class="name">${data.name}</div>
+    ${replyHtml}
     <div>${data.text}</div>
     <div class="time">${data.time}</div>
 </div>
@@ -390,6 +451,13 @@ Math.floor(
 );
 
 document.getElementById("days").textContent = diff;
+window.logout = function(){
+
+localStorage.removeItem("chatUsername");
+
+location.reload();
+
+}
 </script>
 
 </body>
