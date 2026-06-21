@@ -231,6 +231,12 @@ font-style:italic;
 </div>
 
 <div id="chatBox"></div>
+<div id="replyBox" style="display:none;background:#f8f8f8;padding:8px;border-left:4px solid pink;">
+    Replying to:
+    <span id="replyText"></span>
+
+    <button onclick="cancelReply()">❌</button>
+</div>
 <div id="typing"></div>
 <div class="input-area">
 <input type="text" id="message" placeholder="Type a message...">
@@ -270,6 +276,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+let replyingTo = "";
 const usernameInput = document.getElementById("username");
 
 // Load saved name
@@ -279,7 +286,21 @@ if(savedName){
     usernameInput.value = savedName;
     usernameInput.disabled = true;
 }
+window.replyToMessage = function(text){
 
+    replyingTo = text;
+
+    document.getElementById("replyBox").style.display = "block";
+
+    document.getElementById("replyText").innerText = text;
+}
+
+window.cancelReply = function(){
+
+    replyingTo = "";
+
+    document.getElementById("replyBox").style.display = "none";
+}
 window.sendMessage = function(){
 
 const msg=document.getElementById("message").value;
