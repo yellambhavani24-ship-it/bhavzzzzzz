@@ -7,6 +7,64 @@
 <title>Bhavzzz Chat 💕</title>
 
 <style>
+    .hearts{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    pointer-events:none;
+    z-index:0;
+}
+
+.hearts span{
+    position:absolute;
+    bottom:-50px;
+    font-size:30px;
+    animation: floatHeart 10s linear infinite;
+}
+
+.hearts span:nth-child(1){
+    left:10%;
+    animation-delay:0s;
+}
+
+.hearts span:nth-child(2){
+    left:30%;
+    animation-delay:2s;
+}
+
+.hearts span:nth-child(3){
+    left:50%;
+    animation-delay:4s;
+}
+
+.hearts span:nth-child(4){
+    left:70%;
+    animation-delay:6s;
+}
+
+.hearts span:nth-child(5){
+    left:90%;
+    animation-delay:8s;
+}
+
+@keyframes floatHeart{
+    0%{
+        transform:translateY(0);
+        opacity:0;
+    }
+
+    10%{
+        opacity:1;
+    }
+
+    100%{
+        transform:translateY(-110vh);
+        opacity:0;
+    }
+}
 *{
     margin:0;
     padding:0;
@@ -32,6 +90,8 @@ body{
     display:flex;
     flex-direction:column;
     box-shadow:0 0 20px rgba(0,0,0,0.2);
+    position:relative;
+z-index:1;
 }
 
 .header{
@@ -63,11 +123,22 @@ body{
 }
 
 .message{
-    background:#ffd6ea;
+    max-width:75%;
     padding:10px;
     border-radius:15px;
-    margin-bottom:10px;
+    margin:8px;
     word-wrap:break-word;
+}
+
+.left{
+    background:#ffffff;
+    margin-right:auto;
+}
+
+.right{
+    background:#dcf8c6;
+    margin-left:auto;
+    text-align:left;
 }
 
 .name{
@@ -102,23 +173,65 @@ button{
     border-radius:20px;
     cursor:pointer;
 }
+.user-box{
+    display:flex;
+    gap:5px;
+}
+
+.user-box input{
+    flex:1;
+}
+.dark{
+    background:#111;
+    color:white;
+}
+
+.dark #chatBox{
+    background:#222;
+}
+
+.dark .message{
+    color:black;
+}
+.counter{
+text-align:center;
+padding:10px;
+font-weight:bold;
+color:#ff4081;
+}
+#typing{
+padding-left:10px;
+color:gray;
+font-style:italic;
+}
 </style>
 </head>
 
 <body>
+<div class="hearts">
+  <span>💖</span>
+  <span>💕</span>
+  <span>💗</span>
+  <span>💘</span>
+  <span>💝</span>
+</div>
 
 <div class="chat-container">
 
 <div class="header">
 💖 Bhavzzz Chat 💖
+<button onclick="toggleTheme()">🌙</button>
 </div>
-
+<div class="counter">
+❤️ Together for <span id="days"></span> days ❤️
+</div>
 <div class="user-box">
 <input type="text" id="username" placeholder="Enter your name">
+<button onclick="changeName()">✏️</button>
 </div>
 
 <div id="chatBox"></div>
-
+<div id="typing"></div>
 <div class="input-area">
 <input type="text" id="message" placeholder="Type a message...">
 <button onclick="sendMessage()">Send</button>
@@ -128,6 +241,7 @@ button{
 </div>
 
 <script type="module">
+    
     const password = prompt("Enter Chat Password ❤️");
 
 if(password !== "vamshi24"){
@@ -156,11 +270,27 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const usernameInput = document.getElementById("username");
+
+// Load saved name
+const savedName = localStorage.getItem("chatUsername");
+
+if(savedName){
+    usernameInput.value = savedName;
+    usernameInput.disabled = true;
+}
 
 window.sendMessage = function(){
 
 const msg=document.getElementById("message").value;
-const user=document.getElementById("username").value || "Anonymous";
+const user = usernameInput.value || "Anonymous";
+
+// Save name first time
+if(!localStorage.getItem("chatUsername")){
+    localStorage.setItem("chatUsername", user);
+    usernameInput.disabled = true;
+}
+
 
 if(msg==="") return;
 
@@ -184,6 +314,10 @@ window.clearChat = function() {
     remove(ref(db, "messages"));
     document.getElementById("chatBox").innerHTML = "";
 }
+window.changeName = function(){
+    localStorage.removeItem("chatUsername");
+    location.reload();
+}
 
 document.getElementById("message").addEventListener("keypress",(e)=>{
 if(e.key==="Enter"){
@@ -193,21 +327,48 @@ sendMessage();
 
 onChildAdded(ref(db,"messages"),(snapshot)=>{
 
-const data=snapshot.val();
+const data = snapshot.val();
+
+const currentUser = localStorage.getItem("chatUsername");
+
+const side = data.name === currentUser ? "right" : "left";
 
 document.getElementById("chatBox").innerHTML += `
-<div class="message">
-<div class="name">${data.name}</div>
-<div>${data.text}</div>
-<div class="time">${data.time}</div>
+<div class="message ${side}">
+    <div class="name">${data.name}</div>
+    <div>${data.text}</div>
+    <div class="time">${data.time}</div>
 </div>
 `;
 
-const chat=document.getElementById("chatBox");
-chat.scrollTop=chat.scrollHeight;
+const chat = document.getElementById("chatBox");
+chat.scrollTop = chat.scrollHeight;
 
 });
+window.toggleTheme = function(){
 
+document.body.classList.toggle("dark");
+
+localStorage.setItem(
+"theme",
+document.body.classList.contains("dark")
+);
+
+}
+
+if(localStorage.getItem("theme") === "true"){
+document.body.classList.add("dark");
+}
+const startDate = new Date("2026-05-28");
+
+const today = new Date();
+
+const diff =
+Math.floor(
+(today-startDate)/(1000*60*60*24)
+);
+
+document.getElementById("days").textContent = diff;
 </script>
 
 </body>
